@@ -9,7 +9,6 @@ import (
 	"io/fs"
 	"log"
 	"net/http"
-	"net/url"
 	"os"
 	"os/signal"
 	"syscall"
@@ -54,7 +53,7 @@ func main() {
 		config.Instance().Port = port
 	}
 
-	db, err := sql.Open("sqlite", url.QueryEscape(databasePath))
+	db, err := sql.Open("sqlite", databasePath)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -107,8 +106,7 @@ func gracefulShutdown(s *http.Server, db *sql.DB) {
 
 	go func() {
 		<-ctx.Done()
-		fmt.Println()
-		fmt.Println("shutdown signal received")
+		log.Println("shutdown signal received")
 
 		ctxTimeout, cancel := context.WithTimeout(
 			context.Background(),
