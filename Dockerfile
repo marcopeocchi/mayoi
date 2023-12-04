@@ -21,11 +21,7 @@ COPY --from=ui /usr/src/mayoi/cmd/web/ui/dist /usr/src/mayoi/cmd/web/ui/dist
 
 WORKDIR /usr/src/mayoi
 
-RUN npm install
-RUN npm run build
-
-WORKDIR /usr/src/mayoi
-RUN CGO_ENABLED=0 GOOS=linux go build -o mayoi cmd/api/main.go
+RUN CGO_ENABLED=0 GOOS=linux go build -o mayoi cmd/web/main.go
 # -----------------------------------------------------------------------------
 
 # Bin -------------------------------------------------------------------------
