@@ -20,3 +20,20 @@ For instance, I'm running **mayoi** on a `Raspberry Pi 1 model A` with 256MB of 
 
 ## Docker
 A docker image is availabe at `marcobaobao/mayoi` on Docker.io CR.
+
+```sh
+docker run -d --name mayoi -p 6969:6969 -v /path/to/config:/config marcobaobao/mayoi
+```
+
+## Config
+Provide a config file named `config.yaml` with the following structure:
+```yaml
+indexers:
+  - https://indexer1
+  - https://indexer2/rss
+```
+and feed it to **mayoi**
+
+```sh
+mayoi -c config.yaml -d mayoi.db
+```
