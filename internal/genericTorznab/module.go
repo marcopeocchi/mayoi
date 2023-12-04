@@ -1,4 +1,4 @@
-package torznab
+package generictorznab
 
 import (
 	"database/sql"

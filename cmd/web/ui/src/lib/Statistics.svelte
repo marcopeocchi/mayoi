@@ -29,12 +29,21 @@
   });
 </script>
 
-<div class="bg-neutral-100 border w-screen mx-8 p-8 text-sm">
+<div
+  class="
+    bg-neutral-100
+    dark:bg-neutral-800 dark:text-neutral-100
+    border
+    dark:border-neutral-700
+    w-screen
+    mx-8 p-8
+    text-sm"
+>
   <div class="flex flex-row gap-2 items-center">
     <Rss />
     <p>RSS/Torznab address:</p>
     <button
-      class="bg-neutral-200 px-1"
+      class="bg-neutral-200 dark:bg-neutral-700 px-1"
       on:click={() => window.open(`${window.location.href}api`)}
     >
       {window.location.href}api
@@ -44,7 +53,7 @@
   <div class="flex flex-row gap-2 items-center mt-4">
     <HardDrive />
     <p>Database size:</p>
-    <p class="bg-neutral-200 px-1">
+    <p class="bg-neutral-200 dark:bg-neutral-700 px-1">
       {dbSize}
     </p>
   </div>
@@ -54,7 +63,7 @@
     <p>Indexers:</p>
     <ul>
       {#each indexers as index}
-        <li class="bg-neutral-200 px-1">
+        <li class="bg-neutral-200 dark:bg-neutral-700 px-1">
           &bull; {index}
         </li>
       {/each}

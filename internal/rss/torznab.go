@@ -107,3 +107,10 @@ type TorznabSubCategory struct {
 	ID   string `xml:"id,attr"`
 	Name string `xml:"name,attr"`
 }
+
+type TorznabEnclosure struct {
+	XMLName xml.Name `xml:"enclosure"`
+	Url     string   `xml:"url,attr"`
+	Length  int64    `xml:"length,attr"`
+	Type    string   `xml:"type,attr"`
+}

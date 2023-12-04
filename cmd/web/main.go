@@ -8,16 +8,17 @@ import (
 	"fmt"
 	"io/fs"
 	"log"
+	"log/slog"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
-	"github.com/marcopeocchi/mayoi/internal/indexer"
+	"github.com/marcopeocchi/mayoi/internal"
+	generictorznab "github.com/marcopeocchi/mayoi/internal/genericTorznab"
 	"github.com/marcopeocchi/mayoi/internal/management"
 	"github.com/marcopeocchi/mayoi/internal/middleware"
-	"github.com/marcopeocchi/mayoi/internal/torznab"
 	"github.com/marcopeocchi/mayoi/pkg/config"
 	"github.com/marcopeocchi/mayoi/pkg/utils"
 	_ "modernc.org/sqlite"
@@ -72,8 +73,8 @@ func run(db *sql.DB) {
 
 	mux := http.NewServeMux()
 
-	torznab.Module(db, mux)
 	management.Module(mux)
+	generictorznab.Module(db, mux)
 
 	uifs, err := fs.Sub(ui, "ui/dist")
 	if err != nil {
@@ -82,9 +83,14 @@ func run(db *sql.DB) {
 
 	mux.Handle("/", http.FileServer(http.FS(uifs)))
 
-	for _, i := range config.Instance().Indexers {
-		animeTime := indexer.New(i, db)
-		go animeTime.AutoIndex(time.Minute * 5)
+	for _, url := range config.Instance().Indexers {
+		indexer, err := internal.GetIndexer(url, db, mux)
+		if err != nil {
+			slog.Warn("Skipping indexer", slog.String("err", err.Error()))
+			continue
+		}
+
+		go indexer.AutoIndex(context.Background(), time.Minute*5)
 	}
 
 	server := &http.Server{

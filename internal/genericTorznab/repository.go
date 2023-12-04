@@ -1,4 +1,4 @@
-package torznab
+package generictorznab
 
 import (
 	"context"
@@ -25,6 +25,9 @@ func (r *TorznabRepository) Caps() (*rss.ApiCapabilities, error) {
 	caps.Server.Strapline = "Mayoi Anime Indexer"
 
 	caps.Retention.Days = "60"
+
+	caps.Limits.Default = "100"
+	caps.Limits.Max = "100"
 
 	// Searching ------------------------------------------------------------- //
 
@@ -94,6 +97,8 @@ func (r *TorznabRepository) Search(ctx context.Context, query string) (*rss.Feed
 	var feed rss.Feed
 	feed.Version = "1.0"
 
+	feed.Channel.Title = "Mayoi"
+	feed.Channel.Description = "Mayoi Indexer"
 	feed.Channel.AtomLink.Rel = "self"
 	feed.Channel.AtomLink.Type = "application/rss+xml"
 
@@ -117,7 +122,7 @@ func (r *TorznabRepository) Search(ctx context.Context, query string) (*rss.Feed
 			&infohash,
 		)
 
-		item.Size = "377697088"
+		item.Size = 377697088
 
 		item.TorznabAttrs = []rss.TorznabAttr{
 			{

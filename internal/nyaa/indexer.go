@@ -1,17 +1,19 @@
-package indexer
+package nyaa
 
 import (
 	"context"
 	"database/sql"
 	"encoding/xml"
-	"log"
+	"log/slog"
 	"net/http"
 	"time"
 
-	"github.com/marcopeocchi/mayoi/internal/rss"
+	"github.com/marcopeocchi/mayoi/internal/domain"
+	"github.com/marcopeocchi/mayoi/internal/nyaa/db"
 	"github.com/marcopeocchi/mayoi/pkg/useragent"
-	"github.com/marcopeocchi/mayoi/pkg/utils"
 )
+
+const indexerName = "Nyaa"
 
 type RSSIndexer struct {
 	url        string
@@ -19,7 +21,7 @@ type RSSIndexer struct {
 	httpClient *http.Client
 }
 
-func New(url string, db *sql.DB) *RSSIndexer {
+func NewIndexer(url string, db *sql.DB) domain.Indexer {
 	return &RSSIndexer{
 		url:        url,
 		db:         db,
@@ -27,7 +29,7 @@ func New(url string, db *sql.DB) *RSSIndexer {
 	}
 }
 
-func (r *RSSIndexer) Scan() (*rss.Feed, error) {
+func (r *RSSIndexer) scan() (*Feed, error) {
 	req, err := http.NewRequest(http.MethodGet, r.url, nil)
 	if err != nil {
 		return nil, err
@@ -42,19 +44,10 @@ func (r *RSSIndexer) Scan() (*rss.Feed, error) {
 
 	defer res.Body.Close()
 
-	var feed rss.Feed
+	var feed Feed
 
 	if err := xml.NewDecoder(res.Body).Decode(&feed); err != nil {
 		return nil, err
-	}
-
-	if len(feed.Channel.Items) == 0 {
-		feed.Channel.Items = feed.Items
-		feed.Items = nil
-	}
-
-	for i := range feed.Channel.Items {
-		feed.Channel.Items[i].Category = "5070"
 	}
 
 	return &feed, err
@@ -68,26 +61,38 @@ func (r *RSSIndexer) Index(ctx context.Context) error {
 
 	defer conn.Close()
 
-	feed, err := r.Scan()
+	q := db.New(conn)
+
+	feed, err := r.scan()
 	if err != nil {
 		return err
 	}
 
 	for _, item := range feed.Channel.Items {
-		conn.ExecContext(
-			ctx,
-			`INSERT INTO feeds 
-			(guid, title, link, category, pubDate, infohash, createdAt) 
-			VALUES 
-			(?, ?, ?, ?, ?, ?, ?)`,
-			item.GUID,
-			item.Title,
-			item.Link,
-			item.Category,
-			item.PubDate,
-			utils.InfoHashFromMagnet(item.Link),
-			time.Now(),
-		)
+		if !isAnime(&item) {
+			continue
+		}
+		q.InsertFeed(ctx, db.InsertFeedParams{
+			Guid:     item.GUID,
+			Title:    item.Title,
+			Link:     item.Link,
+			Category: "5070",
+			Pubdate:  item.PubDate,
+			Infohash: sql.NullString{
+				String: item.InfoHash,
+				Valid:  true,
+			},
+			Size: convertSize(item.Size),
+			Seeders: sql.NullInt64{
+				Int64: item.Seeders,
+				Valid: true,
+			},
+			Peers: sql.NullInt64{
+				Int64: item.Leechers,
+				Valid: true,
+			},
+			CreatedAt: time.Now(),
+		})
 	}
 
 	return nil
@@ -95,7 +100,11 @@ func (r *RSSIndexer) Index(ctx context.Context) error {
 
 func (r *RSSIndexer) AutoIndex(ctx context.Context, d time.Duration) error {
 	for {
-		log.Printf("Scanning %s\n", r.url)
+		slog.Info(
+			"Scanning",
+			slog.String("indexer", indexerName),
+			slog.String("url", r.url),
+		)
 		r.Index(ctx)
 		time.Sleep(d)
 	}

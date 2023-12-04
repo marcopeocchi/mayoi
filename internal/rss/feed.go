@@ -31,7 +31,8 @@ type Item struct {
 	Title        string `xml:"title"`
 	Link         string `xml:"link"`
 	Category     string `xml:"category"`
-	Size         string `xml:"size"`
+	Size         int64  `xml:"size"`
 	PubDate      string `xml:"pubDate"`
+	Enclosure    TorznabEnclosure
 	TorznabAttrs []TorznabAttr
 }
