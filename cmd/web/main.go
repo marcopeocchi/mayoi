@@ -19,6 +19,7 @@ import (
 	generictorznab "github.com/marcopeocchi/mayoi/internal/genericTorznab"
 	"github.com/marcopeocchi/mayoi/internal/management"
 	"github.com/marcopeocchi/mayoi/internal/middleware"
+	"github.com/marcopeocchi/mayoi/internal/registry"
 	"github.com/marcopeocchi/mayoi/pkg/config"
 	"github.com/marcopeocchi/mayoi/pkg/utils"
 	_ "modernc.org/sqlite"
@@ -71,9 +72,10 @@ func run(db *sql.DB) {
 		log.Fatalln(err)
 	}
 
+	reg := registry.New()
 	mux := http.NewServeMux()
 
-	management.Module(mux)
+	management.Module(mux, reg)
 	generictorznab.Module(db, mux)
 
 	uifs, err := fs.Sub(ui, "ui/dist")
@@ -84,7 +86,7 @@ func run(db *sql.DB) {
 	mux.Handle("/", http.FileServer(http.FS(uifs)))
 
 	for _, url := range config.Instance().Indexers {
-		indexer, err := internal.GetIndexer(url, db, mux)
+		indexer, err := internal.IndexerFactory(url, db, reg, mux)
 		if err != nil {
 			slog.Warn("Skipping indexer", slog.String("err", err.Error()))
 			continue

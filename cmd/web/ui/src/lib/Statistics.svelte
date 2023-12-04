@@ -1,72 +1,39 @@
 <script lang="ts">
   import { HardDrive, Indent, Rss } from 'lucide-svelte';
   import { onMount } from 'svelte';
+  import { getHost } from './utils';
+  import { indexersStore } from './store';
 
-  let dbSize: string = '';
-  let indexers: string[] = [];
+  let dbSize: string = '0 MiB';
 
   const fetchDBSize = async () => {
-    const res = await fetch(`${window.location.href}management/db`);
+    const res = await fetch(getHost(`/management/db`));
     const data = await res.json();
 
     return `${(data / 1_000_000).toFixed(2)} MiB`;
   };
 
-  const fetchIndexers = async () => {
-    const res = await fetch(`${window.location.href}management/indexers`);
-    const data = await res.json();
-
-    return data;
-  };
-
   onMount(async () => {
-    const [_dbSize, _indexers] = await Promise.all([
-      fetchDBSize(),
-      fetchIndexers(),
-    ]);
-    dbSize = _dbSize;
-    indexers = _indexers;
+    dbSize = await fetchDBSize();
   });
 </script>
 
-<div
-  class="
-    bg-neutral-100
-    dark:bg-neutral-800 dark:text-neutral-100
-    border
-    dark:border-neutral-700
-    w-screen
-    mx-8 p-8
-    text-sm"
->
-  <div class="flex flex-row gap-2 items-center">
-    <Rss />
-    <p>RSS/Torznab address:</p>
-    <button
-      class="bg-neutral-200 dark:bg-neutral-700 px-1"
-      on:click={() => window.open(`${window.location.href}api`)}
-    >
-      {window.location.href}api
-    </button>
+<div class="stats shadow-lg 2xl:w-1/4 xl:w-1/3 lg:w-1/2 bg-base-200">
+  <div class="stat">
+    <div class="stat-figure text-primary">
+      <HardDrive />
+    </div>
+    <div class="stat-title">Database size</div>
+    <div class="stat-value text-primary">{dbSize}</div>
   </div>
 
-  <div class="flex flex-row gap-2 items-center mt-4">
-    <HardDrive />
-    <p>Database size:</p>
-    <p class="bg-neutral-200 dark:bg-neutral-700 px-1">
-      {dbSize}
-    </p>
-  </div>
-
-  <div class="flex flex-row gap-2 mt-4">
-    <Indent />
-    <p>Indexers:</p>
-    <ul>
-      {#each indexers as index}
-        <li class="bg-neutral-200 dark:bg-neutral-700 px-1">
-          &bull; {index}
-        </li>
-      {/each}
-    </ul>
+  <div class="stat">
+    <div class="stat-figure text-primary">
+      <Indent />
+    </div>
+    <div class="stat-title">Indexers</div>
+    {#await $indexersStore then indexers}
+      <div class="stat-value text-primary">{indexers.length}</div>
+    {/await}
   </div>
 </div>

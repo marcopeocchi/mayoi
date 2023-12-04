@@ -1,9 +1,15 @@
 package management
 
-import "net/http"
+import (
+	"net/http"
 
-func Module(mux *http.ServeMux) {
-	handler := NewManagementHandler(mux)
+	"github.com/marcopeocchi/mayoi/internal/registry"
+)
 
+func Module(mux *http.ServeMux, reg *registry.Registry) {
+	var (
+		repository = NewReposityory()
+		handler    = NewManagementHandler(mux, repository, reg)
+	)
 	handler.ApplyRoutes()
 }

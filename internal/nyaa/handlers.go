@@ -8,17 +8,19 @@ import (
 type NyaaHandler struct {
 	repo *Repository
 	mux  *http.ServeMux
+	path string
 }
 
-func NewNyaaHandler(r *Repository, mux *http.ServeMux) *NyaaHandler {
+func NewNyaaHandler(r *Repository, mux *http.ServeMux, path string) *NyaaHandler {
 	return &NyaaHandler{
 		repo: r,
 		mux:  mux,
+		path: path,
 	}
 }
 
 func (h *NyaaHandler) ApplyRoutes() {
-	h.mux.HandleFunc("/nyaa/api", func(w http.ResponseWriter, r *http.Request) {
+	h.mux.HandleFunc(h.path, func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/xml")
 
 		fn := r.URL.Query().Get("t")
