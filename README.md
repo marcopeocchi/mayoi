@@ -37,3 +37,6 @@ and feed it to **mayoi**
 ```sh
 mayoi -c config.yaml -d mayoi.db
 ```
+
+## Currently implemented indexers
+- Nyaa
