@@ -1,7 +1,22 @@
 # Mayoi 🐌
 
-A lightweight alternative RSS/Torznab indexer.
+A RSS/Torznab indexer anime indexer.  
+Focuses on speed and low memory usage.
 
-![Screenshot 2023-11-30 alle 15 40 36](https://github.com/marcopeocchi/mayoi/assets/35533749/e3934d8b-107b-46d6-9c91-b5d599123804)
+![Screenshot 2023-12-04 alle 20 52 08](https://github.com/marcopeocchi/mayoi/assets/35533749/57b809ef-25ed-4007-923d-64e46d1fe200)
 
-**🚧 WIP 🚧**
+## A module oriented approach
+Each indexer is contained in a contained unit called "module".  
+Under `internal/nyaa` there's an example `Nyaa.si` indexer.  
+
+If you want to add an indexer just copy the structure and submit a PR 😎.  
+Soon a **wiki** page will be added for following the best rule when implementing an indexer.
+
+## Performance oriented
+This project aims to be an alternative to [prowlarr](https://github.com/Prowlarr/Prowlarr) when it comes to provide a **torznab** compatile indexer.
+The main focus should be a low memory footprint for running **mayoi** on any device.
+
+For instance, I'm running **mayoi** on a `Raspberry Pi 1 model A` with 256MB of RAM clocked at 1GHz and experiencing good response time.
+
+## Docker
+A docker image is availabe at `marcobaobao/mayoi` on Docker.io CR.
