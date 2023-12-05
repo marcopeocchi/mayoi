@@ -40,3 +40,4 @@ mayoi -c config.yaml -d mayoi.db
 
 ## Currently implemented indexers
 - Nyaa
+- AnimeTime

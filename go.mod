@@ -3,6 +3,7 @@ module github.com/marcopeocchi/mayoi
 go 1.21.4
 
 require (
+	github.com/zeebo/bencode v1.0.0
 	gopkg.in/yaml.v3 v3.0.1
 	modernc.org/sqlite v1.27.0
 )

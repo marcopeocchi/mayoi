@@ -1,28 +1,30 @@
-package generictorznab
+package animetime
 
 import (
 	"context"
 	"database/sql"
+	"strconv"
 
+	"github.com/marcopeocchi/mayoi/internal/animetime/db"
 	"github.com/marcopeocchi/mayoi/internal/rss"
 )
 
-type TorznabRepository struct {
+type Repository struct {
 	db *sql.DB
 }
 
-func NewTornzabRepository(db *sql.DB) *TorznabRepository {
-	return &TorznabRepository{
+func NewRepository(db *sql.DB) *Repository {
+	return &Repository{
 		db: db,
 	}
 }
 
-func (r *TorznabRepository) Caps() (*rss.ApiCapabilities, error) {
+func (r *Repository) Caps() (*rss.ApiCapabilities, error) {
 	caps := &rss.ApiCapabilities{}
 
 	caps.Server.Version = "1.0"
-	caps.Server.Title = "Mayoi"
-	caps.Server.Strapline = "Mayoi Anime Indexer"
+	caps.Server.Title = "Mayoi (AnimeTime)"
+	caps.Server.Strapline = "Mayoi Indexer (AnimeTime)"
 
 	caps.Retention.Days = "60"
 
@@ -64,7 +66,7 @@ func (r *TorznabRepository) Caps() (*rss.ApiCapabilities, error) {
 	return caps, nil
 }
 
-func (r *TorznabRepository) Search(ctx context.Context, query string) (*rss.Feed, error) {
+func (r *Repository) Search(ctx context.Context, query string) (*rss.Feed, error) {
 	conn, err := r.db.Conn(ctx)
 	if err != nil {
 		return nil, err
@@ -72,29 +74,27 @@ func (r *TorznabRepository) Search(ctx context.Context, query string) (*rss.Feed
 
 	defer conn.Close()
 
-	statement := `
-		SELECT rowid, guid, title, link, category, pubDate, infohash 
-		FROM feeds 
-		WHERE title LIKE ? 
-		COLLATE NOCASE 
-		ORDER BY rowid DESC`
+	q := db.New(conn)
 
-	if query == "" {
-		statement = `
-			SELECT rowid, guid, title, link, category, pubDate, infohash 
-			FROM feeds 
-			ORDER BY rowid DESC 
-			LIMIT 100`
+	var feeds []db.Animetime
+
+	if query != "" {
+		feeds, err = q.GetFeedsByTitle(ctx, "%"+query+"%")
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		feeds, err = q.GetLatestFeeds(ctx)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	rows, err := r.db.QueryContext(ctx, statement, "%"+query+"%")
-	if err != nil {
-		return nil, err
-	}
+	var (
+		feed  rss.Feed
+		items = make([]rss.Item, len(feeds))
+	)
 
-	defer rows.Close()
-
-	var feed rss.Feed
 	feed.Version = "1.0"
 
 	feed.Channel.Title = "Mayoi"
@@ -105,29 +105,22 @@ func (r *TorznabRepository) Search(ctx context.Context, query string) (*rss.Feed
 	feed.XMLNSAtom = "http://www.w3.org/2005/Atom"
 	feed.XMLNSTorznab = "http://torznab.com/schemas/2015/feed"
 
-	var items []rss.Item
+	for i, feed := range feeds {
+		items[i].GUID = feed.Guid
+		items[i].Category = feed.Category
+		items[i].Link = feed.Link
+		items[i].PubDate = feed.Pubdate
+		items[i].Size = feed.Size
+		items[i].Title = feed.Title
 
-	for rows.Next() {
-		var id int64
-		var item rss.Item
-		var infohash string
+		items[i].Enclosure.Url = feed.Link
+		items[i].Enclosure.Length = feed.Size
+		items[i].Enclosure.Type = "application/x-bittorrent"
 
-		rows.Scan(
-			&id,
-			&item.GUID,
-			&item.Title,
-			&item.Link,
-			&item.Category,
-			&item.PubDate,
-			&infohash,
-		)
-
-		item.Size = 377697088
-
-		item.TorznabAttrs = []rss.TorznabAttr{
+		items[i].TorznabAttrs = []rss.TorznabAttr{
 			{
 				Name:  "category",
-				Value: "5070",
+				Value: feed.Category,
 			},
 			{
 				Name:  "tag",
@@ -135,15 +128,15 @@ func (r *TorznabRepository) Search(ctx context.Context, query string) (*rss.Feed
 			},
 			{
 				Name:  "seeders",
-				Value: "1",
+				Value: strconv.FormatInt(feed.Peers.Int64, 10),
 			},
 			{
 				Name:  "peers",
-				Value: "2",
+				Value: strconv.FormatInt(feed.Peers.Int64, 10),
 			},
 			{
 				Name:  "infohash",
-				Value: infohash,
+				Value: feed.Infohash.String,
 			},
 			{
 				Name:  "downloadvolumefactor",
@@ -154,8 +147,6 @@ func (r *TorznabRepository) Search(ctx context.Context, query string) (*rss.Feed
 				Value: "1",
 			},
 		}
-
-		items = append(items, item)
 	}
 
 	feed.Channel.Items = items

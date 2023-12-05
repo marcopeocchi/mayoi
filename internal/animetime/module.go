@@ -1,16 +1,16 @@
-package nyaa
+package animetime
 
 import (
 	"database/sql"
 	"net/http"
 
+	animetimeDB "github.com/marcopeocchi/mayoi/internal/animetime/db"
 	"github.com/marcopeocchi/mayoi/internal/domain"
-	nyaaDB "github.com/marcopeocchi/mayoi/internal/nyaa/db"
 	"github.com/marcopeocchi/mayoi/internal/registry"
 )
 
 func Module(db *sql.DB, r *registry.Registry, mux *http.ServeMux, url string) domain.Indexer {
-	const path = "/nyaa/api"
+	const path = "/animetime/api"
 
 	r.Set(url, path)
 
@@ -20,7 +20,7 @@ func Module(db *sql.DB, r *registry.Registry, mux *http.ServeMux, url string) do
 		indexer    = NewIndexer(url, db)
 	)
 
-	nyaaDB.AutoMigrate(db)
+	animetimeDB.AutoMigrate(db)
 	handler.ApplyRoutes()
 
 	return indexer

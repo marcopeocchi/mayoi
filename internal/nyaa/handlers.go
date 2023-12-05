@@ -5,21 +5,21 @@ import (
 	"net/http"
 )
 
-type NyaaHandler struct {
+type Handler struct {
 	repo *Repository
 	mux  *http.ServeMux
 	path string
 }
 
-func NewNyaaHandler(r *Repository, mux *http.ServeMux, path string) *NyaaHandler {
-	return &NyaaHandler{
+func NewHandler(r *Repository, mux *http.ServeMux, path string) *Handler {
+	return &Handler{
 		repo: r,
 		mux:  mux,
 		path: path,
 	}
 }
 
-func (h *NyaaHandler) ApplyRoutes() {
+func (h *Handler) ApplyRoutes() {
 	h.mux.HandleFunc(h.path, func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/xml")
 

@@ -1,24 +1,26 @@
-package generictorznab
+package animetime
 
 import (
 	"encoding/xml"
 	"net/http"
 )
 
-type TorznabHandler struct {
-	repo *TorznabRepository
+type Handler struct {
+	repo *Repository
 	mux  *http.ServeMux
+	path string
 }
 
-func NewTorznabHandler(r *TorznabRepository, mux *http.ServeMux) *TorznabHandler {
-	return &TorznabHandler{
+func NewHandler(r *Repository, mux *http.ServeMux, path string) *Handler {
+	return &Handler{
 		repo: r,
 		mux:  mux,
+		path: path,
 	}
 }
 
-func (h *TorznabHandler) ApplyRoutes() {
-	h.mux.HandleFunc("/api", func(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) ApplyRoutes() {
+	h.mux.HandleFunc(h.path, func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/xml")
 
 		fn := r.URL.Query().Get("t")

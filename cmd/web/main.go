@@ -7,7 +7,6 @@ import (
 	"flag"
 	"fmt"
 	"io/fs"
-	"log"
 	"log/slog"
 	"net/http"
 	"os"
@@ -16,12 +15,10 @@ import (
 	"time"
 
 	"github.com/marcopeocchi/mayoi/internal"
-	generictorznab "github.com/marcopeocchi/mayoi/internal/genericTorznab"
 	"github.com/marcopeocchi/mayoi/internal/management"
 	"github.com/marcopeocchi/mayoi/internal/middleware"
 	"github.com/marcopeocchi/mayoi/internal/registry"
 	"github.com/marcopeocchi/mayoi/pkg/config"
-	"github.com/marcopeocchi/mayoi/pkg/utils"
 	_ "modernc.org/sqlite"
 )
 
@@ -39,48 +36,37 @@ var (
 func main() {
 	flag.StringVar(&configPath, "c", "./config.yaml", "config path")
 	flag.StringVar(&databasePath, "d", "mayoi.db", "database path")
-	flag.StringVar(&adderess, "bind", "", "bind to address")
+	flag.StringVar(&adderess, "bind", "0.0.0.0", "bind to address")
 	flag.IntVar(&port, "p", 6969, "port to listen at")
 	flag.Parse()
 
 	if err := config.Instance().Load(configPath); err != nil {
-		log.Fatalln(err)
+		slog.Error(err.Error())
+		os.Exit(1)
 	}
-
-	if config.Instance().Address != adderess {
-		config.Instance().Address = adderess
-	}
-
-	if config.Instance().Port != port {
-		config.Instance().Port = port
-	}
+	config.Instance().Database = databasePath
+	config.Instance().Address = adderess
+	config.Instance().Port = port
 
 	db, err := sql.Open("sqlite", databasePath)
 	if err != nil {
-		log.Fatalln(err)
+		slog.Error(err.Error())
+		os.Exit(2)
 	}
 
 	run(db)
 }
 
 func run(db *sql.DB) {
-	if err := utils.AutoMigrate(context.Background(), db); err != nil {
-		log.Fatalln(err)
-	}
-
-	if err := utils.PruneDatabase(context.Background(), db); err != nil {
-		log.Fatalln(err)
-	}
-
 	reg := registry.New()
 	mux := http.NewServeMux()
 
 	management.Module(mux, reg)
-	generictorznab.Module(db, mux)
 
 	uifs, err := fs.Sub(ui, "ui/dist")
 	if err != nil {
-		log.Fatalln(err)
+		slog.Error(err.Error())
+		os.Exit(3)
 	}
 
 	mux.Handle("/", http.FileServer(http.FS(uifs)))
@@ -88,7 +74,11 @@ func run(db *sql.DB) {
 	for _, url := range config.Instance().Indexers {
 		indexer, err := internal.IndexerFactory(url, db, reg, mux)
 		if err != nil {
-			slog.Warn("Skipping indexer", slog.String("err", err.Error()))
+			slog.Warn(
+				"Skipping indexer",
+				slog.String("url", url),
+				slog.String("err", err.Error()),
+			)
 			continue
 		}
 
@@ -114,7 +104,7 @@ func gracefulShutdown(s *http.Server, db *sql.DB) {
 
 	go func() {
 		<-ctx.Done()
-		log.Println("shutdown signal received")
+		slog.Info("shutdown signal received")
 
 		ctxTimeout, cancel := context.WithTimeout(
 			context.Background(),
