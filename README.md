@@ -26,7 +26,7 @@ docker run -d --name mayoi -p 6969:6969 -v /path/to/config:/config marcobaobao/m
 ```
 
 ## Config
-Provide a config file named `config.yaml` with the following structure:
+Provide a config file named `config.yml` with the following structure:
 ```yaml
 indexers:
   - https://indexer1
@@ -35,7 +35,7 @@ indexers:
 and feed it to **mayoi**
 
 ```sh
-mayoi -c config.yaml -d mayoi.db
+mayoi -c config.yml -d mayoi.db
 ```
 
 ## Currently implemented indexers

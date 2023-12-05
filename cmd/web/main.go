@@ -34,7 +34,7 @@ var (
 )
 
 func main() {
-	flag.StringVar(&configPath, "c", "./config.yaml", "config path")
+	flag.StringVar(&configPath, "c", "./config.yml", "config path")
 	flag.StringVar(&databasePath, "d", "mayoi.db", "database path")
 	flag.StringVar(&adderess, "bind", "0.0.0.0", "bind to address")
 	flag.IntVar(&port, "p", 6969, "port to listen at")

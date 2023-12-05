@@ -1,0 +1,11 @@
+---
+version: "3"
+services:  
+  mayoi:
+    image: marcobaobao/mayoi
+    container_name: mayoi
+    restart: unless-stopped
+    ports:
+      - "6969:6969"
+    volumes:
+      - /home/user/.config/mayoi:/config
