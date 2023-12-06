@@ -14,7 +14,7 @@ RUN pnpm run build
 # -----------------------------------------------------------------------------
 
 # Go --------------------------------------------------------------------------
-FROM golang AS build
+FROM golang:alpine AS build
 
 COPY . /usr/src/mayoi
 COPY --from=ui /usr/src/mayoi/cmd/web/ui/dist /usr/src/mayoi/cmd/web/ui/dist 
@@ -32,6 +32,7 @@ VOLUME /config
 WORKDIR /app
 
 COPY --from=build /usr/src/mayoi/mayoi /app
+COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 
 ENV JWT_SECRET=secret
 
