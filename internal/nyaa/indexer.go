@@ -105,7 +105,15 @@ func (r *RSSIndexer) AutoIndex(ctx context.Context, d time.Duration) error {
 			slog.String("indexer", indexerName),
 			slog.String("url", r.url),
 		)
-		r.Index(ctx)
+		if err := r.Index(ctx); err != nil {
+			slog.Error(
+				"Failed scanning",
+				slog.String("indexer", indexerName),
+				slog.String("url", r.url),
+				slog.String("err", err.Error()),
+			)
+			return err
+		}
 		time.Sleep(d)
 	}
 }

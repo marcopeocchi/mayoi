@@ -22,9 +22,7 @@ var (
 func Instance() *Config {
 	if instance == nil {
 		instanceOnce.Do(func() {
-			instance = &Config{
-				Database: "mayoi.db",
-			}
+			instance = &Config{}
 		})
 	}
 	return instance
