@@ -20,7 +20,7 @@ func Module(db *sql.DB, r *registry.Registry, mux *http.ServeMux, url string) do
 		indexer    = NewIndexer(url, db)
 	)
 
-	nyaaDB.AutoMigrate(db)
+	nyaaDB.CreateTable(db)
 	handler.ApplyRoutes()
 
 	return indexer

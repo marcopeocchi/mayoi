@@ -20,6 +20,16 @@ func New() *Registry {
 	}
 }
 
+func (r *Registry) Keys() *[]string {
+	var keys []string
+
+	for _, v := range r.t {
+		keys = append(keys, v)
+	}
+
+	return &keys
+}
+
 func (r *Registry) Set(url, path string) {
 	r.t[url] = path
 }

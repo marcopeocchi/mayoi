@@ -40,4 +40,17 @@ func (h *ManagementHandler) ApplyRoutes() {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 	})
+
+	h.mux.HandleFunc("/management/indexedEntries", func(w http.ResponseWriter, r *http.Request) {
+		count, err := h.repository.GetIndexedEntries(r.Context())
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		if err := json.NewEncoder(w).Encode(count); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	})
 }

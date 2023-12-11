@@ -1,8 +1,8 @@
 <script lang="ts">
-  import { HardDrive, Indent, Rss } from 'lucide-svelte';
+  import { HardDrive, Indent, Sigma } from 'lucide-svelte';
   import { onMount } from 'svelte';
+  import { indexersStore, totalIndexedStore } from './store';
   import { getHost } from './utils';
-  import { indexersStore } from './store';
 
   let dbSize: string = '0 MiB';
 
@@ -18,7 +18,7 @@
   });
 </script>
 
-<div class="stats shadow-lg 2xl:w-1/4 xl:w-1/3 lg:w-1/2 bg-base-200">
+<div class="stats shadow-lg w-full bg-base-200">
   <div class="stat">
     <div class="stat-figure text-primary">
       <HardDrive />
@@ -34,6 +34,16 @@
     <div class="stat-title">Indexers</div>
     {#await $indexersStore then indexers}
       <div class="stat-value text-primary">{indexers.length}</div>
+    {/await}
+  </div>
+
+  <div class="stat">
+    <div class="stat-figure text-primary">
+      <Sigma />
+    </div>
+    <div class="stat-title">Total indexed</div>
+    {#await $totalIndexedStore then count}
+      <div class="stat-value text-primary">{count}</div>
     {/await}
   </div>
 </div>

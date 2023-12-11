@@ -5,7 +5,7 @@ import (
 	"database/sql"
 )
 
-func AutoMigrate(db *sql.DB) error {
+func CreateTable(db *sql.DB) error {
 	ctx := context.Background()
 
 	conn, err := db.Conn(ctx)
@@ -15,7 +15,7 @@ func AutoMigrate(db *sql.DB) error {
 
 	defer conn.Close()
 
-	_, err = conn.ExecContext(ctx, `CREATE TABLE IF NOT EXISTS nyaa (
+	_, err = conn.ExecContext(ctx, `CREATE TABLE IF NOT EXISTS animetime (
 		guid VARCHAR(255) UNIQUE NOT NULL,
 		title VARCHAR(255) NOT NULL, 
 		link TEXT NOT NULL, 

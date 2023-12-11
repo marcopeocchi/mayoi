@@ -61,7 +61,7 @@ func run(db *sql.DB) {
 	reg := registry.New()
 	mux := http.NewServeMux()
 
-	management.Module(mux, reg)
+	management.Module(mux, db, reg)
 
 	uifs, err := fs.Sub(ui, "ui/dist")
 	if err != nil {
@@ -72,7 +72,12 @@ func run(db *sql.DB) {
 	mux.Handle("/", http.FileServer(http.FS(uifs)))
 
 	for _, url := range config.Instance().Indexers {
-		indexer, err := internal.IndexerFactory(url, db, reg, mux)
+		indexer, err := internal.IndexerFactory(&internal.IndexerFactoryParams{
+			URL: url,
+			DB:  db,
+			Reg: reg,
+			Mux: mux,
+		})
 		if err != nil {
 			slog.Warn(
 				"Skipping indexer",

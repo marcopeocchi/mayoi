@@ -8,9 +8,9 @@ INSERT INTO animetime (
 -- name: GetFeedsByTitle :many
 SELECT * FROM animetime
 WHERE title LIKE ? COLLATE NOCASE
-ORDER BY created_at;
+ORDER BY created_at DESC;
 
 -- name: GetLatestFeeds :many
 SELECT * FROM animetime
-ORDER BY created_at
+ORDER BY created_at DESC
 LIMIT 50;

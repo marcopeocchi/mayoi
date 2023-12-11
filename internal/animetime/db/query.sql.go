@@ -14,7 +14,7 @@ import (
 const getFeedsByTitle = `-- name: GetFeedsByTitle :many
 SELECT guid, title, link, category, pubdate, infohash, created_at, size, seeders, peers FROM animetime
 WHERE title LIKE ? COLLATE NOCASE
-ORDER BY created_at
+ORDER BY created_at DESC
 `
 
 func (q *Queries) GetFeedsByTitle(ctx context.Context, title string) ([]Animetime, error) {
@@ -53,7 +53,7 @@ func (q *Queries) GetFeedsByTitle(ctx context.Context, title string) ([]Animetim
 
 const getLatestFeeds = `-- name: GetLatestFeeds :many
 SELECT guid, title, link, category, pubdate, infohash, created_at, size, seeders, peers FROM animetime
-ORDER BY created_at
+ORDER BY created_at DESC
 LIMIT 50
 `
 
